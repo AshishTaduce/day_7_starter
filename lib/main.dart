@@ -1,5 +1,11 @@
+import 'package:day_5_starter/question_brain.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'question_brain.dart';
+import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+
+
 
 void main() {
   runApp(Quizlr());
@@ -27,8 +33,61 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+
+  //int index = 0;
+  List <Icon> scoreKeeper = [];
+  int score = 0;
+
+
+  QuizBrain brain = QuizBrain();
   @override
   Widget build(BuildContext context) {
+
+    _onAlertButtonPressed(context) {
+      Alert(
+        context: context,
+        type: AlertType.success,
+        title: "QUIZ COMPLETED",
+        desc: "You have reached end of quiz and scored $score/${brain.questions.length}",
+        buttons: [
+          DialogButton(
+            child: Text(
+              "Restart",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+            onPressed: () {
+              setState(() {
+                brain.questionNumber = 0;
+                scoreKeeper = [];
+              });
+              return Navigator.pop(context);
+            },
+            width: 120,
+          )
+        ],
+      ).show();
+    }
+
+    void checkAnswer (bool userAnswer){
+
+      if(brain.questionNumber == brain.questions.length - 1){
+        print('reached end');
+        _onAlertButtonPressed(context);
+      }
+      else{
+        setState(() {
+          if (brain.checkAnswer(userAnswer)){
+            scoreKeeper.add(Icon(Icons.check, color: Colors.green,));
+            score++;
+          }
+          else{
+            scoreKeeper.add(Icon(Icons.close, color: Colors.red,));
+          }
+          brain.nextQuestion();
+        });
+      }
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -39,7 +98,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go',
+                brain.getCurrentQuestion().questionText,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24.0,
@@ -62,8 +121,7 @@ class _QuizPageState extends State<QuizPage> {
                   color: Colors.white,
                 ),
               ),
-              onPressed: () {},
-            ),
+    onPressed: ()=> checkAnswer(true)),
           ),
         ),
         Expanded(
@@ -79,11 +137,15 @@ class _QuizPageState extends State<QuizPage> {
                   color: Colors.white,
                 ),
               ),
-              onPressed: () {},
-            ),
+              onPressed: (){checkAnswer(false);
+              },            ),
           ),
         ),
         // TODO a row here to keep the scores
+        Row(
+
+          children: scoreKeeper,
+        )
       ],
     );
   }
